@@ -1,0 +1,47 @@
+{
+    "variables": {
+        "ansible_host": "default",
+        "ansible_connection": "docker"
+    },
+    "builders": [
+        {
+            "type": "docker",
+            "image": "ubuntu:16.04",
+            "commit": true,
+            "changes": [ 
+                "EXPOSE 8888","ENTRYPOINT \"java\" \"-jar\" \"CalculatorBuild.jar\""
+            ]
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "apt update",
+                "apt-get -y install python3",
+                "apt-get install -y ansible"
+            ]
+        },
+        {
+            "type": "file",
+            "source": "CalculatorBuild.jar",
+            "destination": "/"
+        },
+        {
+            "type": "ansible-local",
+            "playbook_file": "ansibleprovision.yml"
+        }
+    ],
+    "post-processors": [
+        [
+            {
+                "type": "docker-tag",
+                "repository": "neveseduardo/calculator-rxnetty",
+                "tag": "calculatorrxnetty"
+            },
+            {
+                "type": "docker-push"
+            }
+        ]
+    ]
+}
